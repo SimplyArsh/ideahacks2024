@@ -8,8 +8,9 @@ const recipe = require('./routes/recipe')
 app.use((req, res, next) => {
     next()
 })
+app.use(express.json())
 
-app.use('/api/recipe', recipe)
+app.use('/api', recipe)
 
 mongoose.connect(process.env.MONGO_UI)
 .then(() => {
@@ -21,7 +22,7 @@ mongoose.connect(process.env.MONGO_UI)
     console.log(error)
 })
 
-app.listen(process.env.PORT, () => {
+app.listen(process.env.PORT || 5000, () => {
     console.log('Listening on port 4000!')
 })
 
