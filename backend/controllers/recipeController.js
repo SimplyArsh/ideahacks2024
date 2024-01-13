@@ -1,6 +1,6 @@
 const {Item} = require('../models/recipeModel')
 
-
+//gets all items
 const getAllItems = async (req, res) => {
     const items = await Item.find({}).sort({expiration_date: -1})
     res.status(200).json({items})
