@@ -11,3 +11,70 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.app {
+  display: flex;
+  justify-content: space-around;
+  padding: 20px;
+}
+
+.fridge-snapshot {
+  width: 30%;
+  padding: 20px;
+  background-color: peachpuff;
+  border: 2px solid purple;
+  text-align: center;
+}
+
+.recipes {
+  width: 60%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.generate-button {
+  margin-bottom: 20px;
+  padding: 10px 20px;
+  background-color: salmon;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.recipe-card {
+  width: 80%;
+  background-color: moccasin;
+  margin-bottom: 20px;
+  padding: 15px;
+  box-shadow: 0 4
+  px 8px 0 rgba(0,0,0,0.2);
+  transition: 0.3s;
+  border-radius: 5px;
+  }
+  
+  .recipe-card:hover {
+  box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+  }
+  
+  h2, h3 {
+  color: #333;
+  }
+  
+  /* Responsive layout - makes the two columns stack on top of each other instead of next to each other on small screens */
+  @media (max-width: 768px) {
+  .app {
+  flex-direction: column;
+  align-items: center;
+  }
+  
+  .fridge-snapshot,
+  .recipes {
+  width: 90%;
+  }
+  
+  .recipe-card {
+  width: 100%;
+  }
+  }

@@ -34,9 +34,13 @@ const expirationData = new Schema({
     }
 })
 
+const snapShotSchema = new Schema({}, {strict: false})
+
 const Item = mongoose.model('Item', itemSchema)
 const Expiration = mongoose.model('Expiration', expirationData)
+const Snapshot = mongoose.model('Image', snapShotSchema)
 module.exports = {
     Item,
-    Expiration
+    Expiration,
+    Snapshot
 }

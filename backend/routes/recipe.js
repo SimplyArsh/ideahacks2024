@@ -5,7 +5,8 @@ const {
     getHeadSortedItems,
     createItem,
     getItem,
-    getRecipes
+    getRecipes,
+    getSnapshot
 } = require('../controllers/controller')
 
 const router = express.Router()
@@ -16,5 +17,6 @@ router.get('/getHeadSortedItems', getHeadSortedItems)
 router.get('getRecipes', getRecipes)
 router.patch('/loadExpirationList', loadExpirationList)
 router.post('/createItem', createItem)
+router.get('/getSnapshot', getSnapshot)
 
 module.exports = router

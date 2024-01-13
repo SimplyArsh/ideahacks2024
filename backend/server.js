@@ -6,9 +6,7 @@ const cors = require('cors');
 const mongoose = require('mongoose')
 const recipe = require('./routes/recipe')
 
-app.use((req, res, next) => {
-    next()
-})
+app.use(cors());
 app.use(express.json())
 
 app.use('/api', recipe)
