@@ -1,25 +1,20 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
-
-const itemSchema = new Schema({
+const userRecipe = new Schema({
     title: {
         type: String, 
         required: true
     },
-    quantity: {
-        type: Number,
+    ingredients: {
+        type: [{String, Number}], //name and quantity of ingredient
         required: true
     },
-    expiration_date: {
-        type: Date,
-        required: false
-    }
 }, {
     timestamps: true
 })
 
-const Item = mongoose.model('Item', itemSchema)
+const userRecipeItem = mongoose.model('userRecipe', userRecipe)
 module.exports = {
-    Item: Item
+    userRecipeItem
 }
