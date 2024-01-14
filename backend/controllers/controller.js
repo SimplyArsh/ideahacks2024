@@ -10,7 +10,8 @@ const getSnapshot = async (req, res) => {
         // const oldResponse = await Snapshot.find({}).sort({date: 1}).limit(1)
         // await Snapshot.deleteById({ _id: oldResponse._id})
         // console.log(snapResponse)
-        console.log("here")
+        console.log("HERE")
+        console.log(snapResponse)
         res.status(200).json(snapResponse)
     } catch (error) {
         res.status(400).json({Error: error.message})
