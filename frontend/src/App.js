@@ -34,9 +34,9 @@ const App = () => {
 
   const [snapshotBinary, updateSnapshotBinary] = useState(null)
 
-  function hexToBase64(str) {
-    return btoa(String.fromCharCode.apply(null, str.replace(/\r|\n/g, "").replace(/([\da-fA-F]{2}) ?/g, "0x$1 ").replace(/ +$/, "").split(" ")));
-  }
+  // function hexToBase64(str) {
+  //   return btoa(String.fromCharCode.apply(null, str.replace(/\r|\n/g, "").replace(/([\da-fA-F]{2}) ?/g, "0x$1 ").replace(/ +$/, "").split(" ")));
+  // }
   
   const fetchSnapshot = async () => {
     fetch('http://localhost:4000/api/getSnapshot').then(
