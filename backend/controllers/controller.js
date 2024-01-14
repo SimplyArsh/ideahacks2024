@@ -189,12 +189,11 @@ const updateItemsInFridge = async (req, res) => {
 }
 
 const getRecipes = async (req, res) => {
-    // const {id} = req.params
-
+    const itemCount = req.query.totalItems
     const sortedItems = await getHeadSortedItems()
-
+    console.log(sortedItems)
     const orders = []
-    const itemsPerRecipe = Math.min(1, sortedItems.length)
+    const itemsPerRecipe = Math.min(itemCount, sortedItems.length)
     for (let idx = 0; idx < sortedItems.length; idx++) {
         var itemsPerOrder = ""
         for (let idx = 0; idx < itemsPerRecipe; idx++) {
@@ -204,13 +203,12 @@ const getRecipes = async (req, res) => {
     }
 
     const smallOrders = orders.slice(0, 2)
-    console.log(orders)
 
     async function processArray(orders) {
 
         const promises = orders.map(order => {
 
-            const API_KEY = "612300b5b3ec448aa78f7e613d4e6d7e"
+            const API_KEY = "a410395002d247fa9b10ba1a3f7f817e"
             const spoonURL = "https://api.spoonacular.com/recipes/complexSearch?" + new URLSearchParams({
                 apiKey: API_KEY,
                 includeIngredients: order,
