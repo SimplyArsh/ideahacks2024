@@ -3,9 +3,11 @@ const exp = require('constants');
 const sharp = require('sharp');
 const spawn = require("child_process").spawn;
 const {Item, Expiration, Snapshot} = require('../models/itemModel')
+const { setIntervalAsync, clearIntervalAsync } = require('set-interval-async');
 
 // will store a database of items and their respective expiration date
 const getSnapshot = async (req, res) => {
+
     try {
         const snapResponse = await Snapshot.find({}).sort({date: -1}).limit(1)
         // const oldResponse = await Snapshot.find({}).sort({date: 1}).limit(1)
@@ -15,6 +17,7 @@ const getSnapshot = async (req, res) => {
     } catch (error) {
         res.status(400).json({Error: error.message})
     }
+
 }
 
 const getSnapshotCircle = async (req, res) => {
@@ -54,21 +57,34 @@ const loadExpirationList = async (req, res) => {
 
     // adding to database
     try {
-        const expirationCollection = await Expiration.insertMany(expirationDateList)
-        res.status(200).json({expirationCollection})
+        const ageInDays = await Expiration.insertMany(expirationDateList)
+        res.status(200).json({ageInDays})
     } catch (error) {
         res.status(400).json({error: error.message})
     }
 
 }
 
-const checkExpiration = () => {
-    if (expirationDateList.length == 0) {
-        console.log("Expiration Database not intialized")
+const deleteAll = async () => {
+    const expirationCollection = await Expiration.deleteMany({})
+    res.status(200).json(expirationCollection)
+}
+
+const getExpirationDate = async (name_) => {
+    
+    try {
+        const expirationCollection = await Expiration.find({name: name_})
+        if (expirationCollection.fridgeLife == null) {
+            return expirationCollection[0].fridgeLife 
+        } else {
+            console.log(expirationCollection.fridgeLife)
+            return expirationCollection.fridgeLife 
+        }
+        
+    } catch (error) {
+        console.log(name_)
+        console.log(error)
     }
-
-    // 
-
 }
 
 const getAllItems = async (req, res) => {
@@ -140,61 +156,99 @@ const createItem = async (req, res) => {
     }
 }
 
-function cropImage (binaryImage) {
 
-    const imageBuffer = Buffer.from(binaryImage.split(',')[1], 'base64');
-    const outputImagePath = '/Users/arsh/Documents/ucla/winter24/ideahacks2024/backend/controllers';
+const updateItemsInFridge = async () => {
 
-    // console.log(imageBuffer)
-    // params
-    const cropParameters = {
-    left: 100,
-    top: 100,
-    width: 200,
-    height: 200,
-    };
-    // Crop the image
-    sharp(imageBuffer)
-    .extract(cropParameters)
-    .toFile(outputImagePath, (err, info) => {
-        if (err) {
-        console.error(err);
-        } else {
-        console.log('Image cropped and saved successfully');
-        }
-    });
-
-}
-
-const updateItemsInFridge = async (req, res) => {
-
+    var data_ = []
     try {
         const snapResponse = await Snapshot.find({}).sort({date: -1}).limit(1)
-        // console.log(snapResponse[0].data.fromBase64())
-        // cropImage(snapResponse[0].data.fromBase64())
-        // res.status(200).json(snapResponse[0].data)
 
+
+        let buffer = Buffer.from(snapResponse[0].data.buffer);
+        let capturedItems_ = ""
+        // If the original data was a string, you can convert the buffer to a string
+        let originalString = buffer.toString('base64');
+        
         const PYTHON_PATH = "/Users/arsh/Documents/ucla/winter24/ideahacks2024/backend/controllers/test.py"
-        const pythonProcess = spawn('python',[PYTHON_PATH, snapResponse]);
 
-        pythonProcess.stdout.on('data', (data) => {
-            console.log(data.toString())
-        });
+        const cnn = () => {
+            return new Promise((resolve) => {
+                const pythonProcess = spawn('python',[PYTHON_PATH, originalString, 2]);
 
-        res.status(200).json({"good": "wow"})
+                pythonProcess.stdout.on('data', (data) => {
+                    capturedItems_ = data.toString().slice(0, -1)
+                });
+
+                pythonProcess.on('close', (code) => {
+                    if (code !== 0) {
+                        reject(`Process exited with code ${code}`);
+                    } else {
+                        resolve(capturedItems_);
+                     }
+                });
+            })
+        }
+        
+        await cnn() 
+        
+        const capturedItems = capturedItems_.split(",")
+        console.log(capturedItems)
+
+        const itemChanged = []
+
+        async function checkPresence () {
+            for(const item of capturedItems) {
+                const itemExists = await Item.exists({title: item})
+                // console.log(item)
+                if (!itemExists) {
+                    const age = await getExpirationDate(item)
+                    // console.log(age)
+                    Date.prototype.addHours= function(h){
+                        this.setHours(this.getHours()+h);
+                        return this;
+                    }
+                    const expiration = new Date ().addHours(age*24)
+
+                    try {
+                        const itemCreated = await Item.create({title: item, quantity: 1, expiration_date: expiration})
+                        itemChanged.push(itemCreated)
+                        // console.log("ADDITION: ")
+                        // console.log(itemCreated)
+                    } catch (error) {
+                        console.log("There was an error in creating the new document.")
+                    }
+                }
+            }
+        }
+        await checkPresence ()
+
+        try {
+            const prevItems = await Item.deleteMany({title: { $nin: capturedItems}})
+            itemChanged.push(prevItems)
+            // console.log("DELETE: ")
+            // console.log(prevItems)
+        } catch (error) {
+            console.log("Error with retrieving all items")
+        }
+
+        return itemChanged
 
     } catch (error) {
-        console.log(error)
+        console.log("error")
     }
 }
 
+const timer = setIntervalAsync(async () => {
+    await updateItemsInFridge()
+}, 10000);
+
 const getRecipes = async (req, res) => {
-    // const {id} = req.params
+    const {Items} = req.query
 
     const sortedItems = await getHeadSortedItems()
 
     const orders = []
-    const itemsPerRecipe = Math.min(1, sortedItems.length)
+    const itemsPerRecipe = Math.min(Items, sortedItems.length)
     for (let idx = 0; idx < sortedItems.length; idx++) {
         var itemsPerOrder = ""
         for (let idx = 0; idx < itemsPerRecipe; idx++) {
@@ -242,9 +296,15 @@ const getRecipes = async (req, res) => {
         
     }
 
+    const intervalID = setInterval(sayHello, 1000)
+
 
     
     processArray(orders).then((response) => {
+
+        if (item == null) {
+            res.status(200).json({})
+        }
 
         const recipes = response.map( (item) => {
 
