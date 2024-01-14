@@ -78,7 +78,7 @@ const getExpirationDate = async (name_) => {
             return expirationCollection[0].fridgeLife 
         } else {
             console.log(expirationCollection.fridgeLife)
-            return expirationCollection.fridgeLife 
+            return expirationCollection.fridgeLife
         }
         
     } catch (error) {
@@ -89,7 +89,19 @@ const getExpirationDate = async (name_) => {
 
 const getAllItems = async (req, res) => {
     const items = await Item.find({}).sort({expiration_date: -1})
-    res.status(200).json({items})
+
+    const finalItems = items.map( (item)=> {
+        const currTime = new Date ()
+        let Difference_In_Time = item.expiration_date.getTime() - currTime.getTime();
+        let Difference_In_Days = Math.round(Difference_In_Time / (1000 * 3600 * 24));
+
+        return ({
+            "name": item.title,
+            "daysLeft": Difference_In_Days
+        })
+    })
+
+    res.status(200).json(finalItems)
 }
 
 const getHeadSortedItems = async () => {
@@ -299,6 +311,22 @@ const getRecipes = async (req, res) => {
     const intervalID = setInterval(sayHello, 1000)
 
 
+    // async function expiration () {
+    //     const lowest = []
+    //     for(const item of capturedItems) {
+    //         const itemExists = await Item.find({title: item})
+
+    //         const currTime = new Date ()
+    //         let Difference_In_Time = itemExists.expiration_date.getTime() - currTime.getTime();
+    //         let Difference_In_Days = Math.round(Difference_In_Time / (1000 * 3600 * 24));
+    //         lowest.push(Difference_In_Days)
+
+    //     }
+    //     return {"name":  , "expiration": Math.min(...lowest)}
+
+    // }
+
+    const expiringSoon = await expiration(); 
     
     processArray(orders).then((response) => {
 
